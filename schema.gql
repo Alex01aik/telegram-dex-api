@@ -1,0 +1,142 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type SuccessOutput {
+  success: Boolean!
+}
+
+type User {
+  id: String!
+  name: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Informator {
+  id: String!
+  userName: String!
+  isTrusted: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type FindManyMeta {
+  total: Int!
+}
+
+type InformatorManyOutput {
+  informators: [Informator!]!
+  meta: FindManyMeta!
+}
+
+type Snapshot {
+  id: String!
+  price: String
+  priceInUsd: String
+  priceSolInUsd: String
+  payload: JSON
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+type SnapshotManyOutput {
+  snapshots: [Snapshot!]!
+  meta: FindManyMeta!
+}
+
+type Asset {
+  address: String!
+  name: String!
+  fullName: String
+  logo: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type SnapshotChain {
+  id: String!
+  endAt: DateTime
+  snapshots: [Snapshot!]!
+  asset: Asset!
+  informator: Informator!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type SnapshotChainManyOutput {
+  snapshotChains: [SnapshotChain!]!
+  meta: FindManyMeta!
+}
+
+type Transaction {
+  id: String!
+  snapshot: Snapshot!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Trade {
+  id: String!
+  asset: Asset!
+  buyTransaction: Transaction!
+  sellTransaction: Transaction
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type TradeManyOutput {
+  trades: [Trade!]!
+  meta: FindManyMeta!
+}
+
+type AssetManyOutput {
+  assets: [Asset!]!
+  meta: FindManyMeta!
+}
+
+type Query {
+  findManyTrades(take: Int = 10, skip: Int = 0): TradeManyOutput!
+  findManyInformators(take: Int = 10, skip: Int = 0): InformatorManyOutput!
+  findOneInformatorById(id: String!): Informator
+  findOneInformatorByUsername(userName: String!): Informator
+  findOneInformatorByTelegramId(telegramId: String!): Informator
+  findManySnapshots(take: Int = 10, skip: Int = 0): SnapshotManyOutput!
+  findManySnapshotChains(take: Int = 10, skip: Int = 0): SnapshotChainManyOutput!
+  findManyUsers: [User!]!
+  findOneUserById(id: String!): User
+  findManyAssets(take: Int = 10, skip: Int = 0): AssetManyOutput!
+}
+
+type Mutation {
+  createOneInformator(userName: String!, telegramId: String!, isTrusted: Boolean): Informator!
+  deleteOneInformator(id: String!): SuccessOutput!
+  updateOneInformator(id: String!, userName: String, isTrusted: Boolean): SuccessOutput!
+  createOneSnapshot(informatorId: String!, asset: CreateOneAssetArgs!, snapshot: CreateOneSnapshotArgs!): Snapshot!
+  createOneUser(name: String!): User!
+  deleteOneUser(id: String!): SuccessOutput!
+  updateOneUser(id: String!, name: String!): SuccessOutput!
+}
+
+input CreateOneAssetArgs {
+  address: String!
+  name: String!
+  fullName: String
+  logo: String
+}
+
+input CreateOneSnapshotArgs {
+  price: String
+  priceInUsd: String
+  priceSolInUsd: String
+}

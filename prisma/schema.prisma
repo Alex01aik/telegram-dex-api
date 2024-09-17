@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Informator {
+  id            String          @id @default(uuid())
+  userName      String          @unique
+  telegramId    String          @unique
+  isTrusted     Boolean         @default(false)
+  // 
+  SnapshotChain SnapshotChain[]
+  // 
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model Snapshot {
+  id              String            @id @default(uuid())
+  price           Decimal?
+  priceInUsd      Decimal?
+  priceSolInUsd   Decimal?
+  payload         Json?
+  // 
+  snapshotChainId String
+  snapshotChain   SnapshotChain     @relation(fields: [snapshotChainId], references: [id], onDelete: Cascade)
+  // 
+  buyTransaction  BuyTransaction[]
+  // 
+  sellTransaction SellTransaction[]
+  // 
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model SnapshotChain {
+  id           String     @id @default(uuid())
+  // 
+  informatorId String
+  informator   Informator @relation(fields: [informatorId], references: [id])
+  // 
+  assetAddress String
+  asset        Asset      @relation(fields: [assetAddress], references: [address], onDelete: Cascade)
+  // 
+  snapshots    Snapshot[]
+  // 
+  endAt        DateTime?
+  // 
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([informatorId, assetAddress, createdAt])
+}
+
+model Asset {
+  address       String          @id @default(uuid())
+  name          String          @unique()
+  fullName      String?
+  logo          String?
+  // 
+  SnapshotChain SnapshotChain[]
+  // 
+  Trade         Trade[]
+  // 
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model Trade {
+  id              String           @id @default(uuid())
+  // 
+  assetAddress    String
+  asset           Asset            @relation(fields: [assetAddress], references: [address])
+  // 
+  buyTransaction  BuyTransaction?
+  // 
+  sellTransaction SellTransaction?
+  // 
+  userId          String
+  user            User             @relation(fields: [userId], references: [id])
+  // 
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model BuyTransaction {
+  id         String   @id @default(uuid())
+  // 
+  snapshotId String
+  snapshot   Snapshot @relation(fields: [snapshotId], references: [id])
+  // 
+  tradeId    String   @unique
+  trade      Trade    @relation(fields: [tradeId], references: [id])
+  // 
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model SellTransaction {
+  id         String   @id @default(uuid())
+  // 
+  snapshotId String
+  snapshot   Snapshot @relation(fields: [snapshotId], references: [id])
+  // 
+  tradeId    String   @unique
+  trade      Trade    @relation(fields: [tradeId], references: [id])
+  // 
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model User {
+  id          String   @id @default(uuid())
+  name        String
+  isAutoTrade Boolean  @default(false)
+  //
+  Trade       Trade[]
+  // 
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
