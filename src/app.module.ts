@@ -23,11 +23,15 @@ import { AuthModule } from './modules/auth/auth.module';
       driver: ApolloDriver,
       autoSchemaFile: true,
       context: ({ req, res }) => ({ req, res }),
-      playground: {
-        settings: {
-          'request.credentials': 'include',
-        },
-      },
+      introspection: process.env.NODE_ENV !== 'production',
+      playground:
+        process.env.NODE_ENV !== 'production'
+          ? {
+              settings: {
+                'request.credentials': 'include',
+              },
+            }
+          : false,
     }),
     TelegramModule.forRoot(
       Number(process.env.API_ID),
