@@ -9,15 +9,25 @@ import { ChatModule } from './modules/chat/chat.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AssetModule } from './modules/asset/asset.module';
 import { TradeModule } from './modules/trade/trade.module';
+import { TransactionRuleModule } from './modules/transaction-rule/transaction-rule.module';
+import { CacheModule } from '@nestjs/cache-manager';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
+    CacheModule.register({
+      isGlobal: true,
+    }),
     ScheduleModule.forRoot(),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      playground: true,
-      autoSchemaFile: 'schema.gql',
-      path: '/graphql',
+      autoSchemaFile: true,
+      context: ({ req, res }) => ({ req, res }),
+      playground: {
+        settings: {
+          'request.credentials': 'include',
+        },
+      },
     }),
     TelegramModule.forRoot(
       Number(process.env.API_ID),
@@ -30,6 +40,8 @@ import { TradeModule } from './modules/trade/trade.module';
     SnapshotModule,
     ChatModule,
     TradeModule,
+    TransactionRuleModule,
+    AuthModule,
   ],
   providers: [],
 })

@@ -13,10 +13,7 @@ export class Snapshot {
   price?: Decimal;
 
   @Field(() => String, { nullable: true })
-  priceInUsd?: Decimal;
-
-  @Field(() => String, { nullable: true })
-  priceSolInUsd?: Decimal;
+  liquidity?: Decimal;
 
   @Field(() => GraphQLJSON, { nullable: true })
   payload?: Prisma.JsonValue;

@@ -2,15 +2,19 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type SuccessOutput {
-  success: Boolean!
-}
-
 type User {
   id: String!
   name: String!
+  isAutoTrade: Boolean!
+  role: UserRole!
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+enum UserRole {
+  User
+  Admin
+  SuperAdmin
 }
 
 """
@@ -18,40 +22,34 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type FindManyMeta {
+  total: Int!
+}
+
+type UserManyOutput {
+  users: [User!]!
+  meta: FindManyMeta!
+}
+
+type InformatorRate {
+  id: String!
+  successes: Float!
+  fales: Float!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
 type Informator {
   id: String!
   userName: String!
+  rate: InformatorRate
   isTrusted: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
 
-type FindManyMeta {
-  total: Int!
-}
-
 type InformatorManyOutput {
   informators: [Informator!]!
-  meta: FindManyMeta!
-}
-
-type Snapshot {
-  id: String!
-  price: String
-  priceInUsd: String
-  priceSolInUsd: String
-  payload: JSON
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
-
-"""
-The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
-"""
-scalar JSON
-
-type SnapshotManyOutput {
-  snapshots: [Snapshot!]!
   meta: FindManyMeta!
 }
 
@@ -63,6 +61,20 @@ type Asset {
   createdAt: DateTime!
   updatedAt: DateTime!
 }
+
+type Snapshot {
+  id: String!
+  price: String
+  liquidity: String
+  payload: JSON
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
 
 type SnapshotChain {
   id: String!
@@ -81,6 +93,7 @@ type SnapshotChainManyOutput {
 
 type Transaction {
   id: String!
+  value: String!
   snapshot: Snapshot!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -88,9 +101,10 @@ type Transaction {
 
 type Trade {
   id: String!
+  user: User!
   asset: Asset!
   buyTransaction: Transaction!
-  sellTransaction: Transaction
+  sellTransactions: [Transaction!]!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
@@ -100,43 +114,85 @@ type TradeManyOutput {
   meta: FindManyMeta!
 }
 
+type ChatRate {
+  id: String!
+  successes: Float!
+  fales: Float!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Chat {
+  id: String!
+  name: String!
+  telegramId: String!
+  informators: [Informator!]!
+  rate: ChatRate
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type ChatManyOutput {
+  chats: [Chat!]!
+  meta: FindManyMeta!
+}
+
+type TransactionRule {
+  id: String!
+  priceChange: String!
+  transactionVolume: String
+  type: TransactionRuleType!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum TransactionRuleType {
+  STOP
+  SELL
+}
+
+type TransactionRuleManyOutput {
+  transactionRules: [TransactionRule!]!
+  meta: FindManyMeta!
+}
+
 type AssetManyOutput {
   assets: [Asset!]!
   meta: FindManyMeta!
 }
 
+type AccessToken {
+  accessToken: String!
+}
+
 type Query {
+  findManyChats(take: Int = 10, skip: Int = 0): ChatManyOutput!
   findManyTrades(take: Int = 10, skip: Int = 0): TradeManyOutput!
+  findManyTradesForAllUsers(take: Int = 10, skip: Int = 0): TradeManyOutput!
   findManyInformators(take: Int = 10, skip: Int = 0): InformatorManyOutput!
   findOneInformatorById(id: String!): Informator
   findOneInformatorByUsername(userName: String!): Informator
   findOneInformatorByTelegramId(telegramId: String!): Informator
-  findManySnapshots(take: Int = 10, skip: Int = 0): SnapshotManyOutput!
   findManySnapshotChains(take: Int = 10, skip: Int = 0): SnapshotChainManyOutput!
-  findManyUsers: [User!]!
+  findManyUsers(take: Int = 10, skip: Int = 0): UserManyOutput!
   findOneUserById(id: String!): User
+  findManyTransactionRules(take: Int = 10, skip: Int = 0): TransactionRuleManyOutput!
   findManyAssets(take: Int = 10, skip: Int = 0): AssetManyOutput!
+  login(login: String!, password: String!): AccessToken!
+  refresh: AccessToken!
+  me: User!
 }
 
 type Mutation {
+  createOneChat(telegramId: String!): Chat!
+  deleteOneChat(id: String!): Chat!
   createOneInformator(userName: String!, telegramId: String!, isTrusted: Boolean): Informator!
-  deleteOneInformator(id: String!): SuccessOutput!
-  updateOneInformator(id: String!, userName: String, isTrusted: Boolean): SuccessOutput!
-  createOneSnapshot(informatorId: String!, asset: CreateOneAssetArgs!, snapshot: CreateOneSnapshotArgs!): Snapshot!
-  createOneUser(name: String!): User!
-  deleteOneUser(id: String!): SuccessOutput!
-  updateOneUser(id: String!, name: String!): SuccessOutput!
-}
-
-input CreateOneAssetArgs {
-  address: String!
-  name: String!
-  fullName: String
-  logo: String
-}
-
-input CreateOneSnapshotArgs {
-  price: String
-  priceInUsd: String
-  priceSolInUsd: String
+  deleteOneInformator(id: String!): Informator!
+  updateOneInformator(id: String!, userName: String, isTrusted: Boolean): Informator!
+  deleteOneUser(id: String!): User!
+  updateOneUser(id: String!, name: String, isAutoTrade: Boolean): User!
+  updateOneUserRole(id: String!, role: UserRole!): User!
+  createOneSellTransactionRule(priceChange: String!, transactionVolume: String): TransactionRule!
+  updateOneTransactionRule(id: String!, priceChange: String, transactionVolume: String): TransactionRule!
+  register(name: String!, login: String!, password: String!): AccessToken!
 }

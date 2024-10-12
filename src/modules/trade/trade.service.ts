@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { TradeStatus } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 import { FindManyArgs } from 'src/common/graphql/args/FindManyArgs';
 
@@ -7,12 +8,14 @@ export class TradeService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createBuyTransaction(
+    value: string,
     snapshotId: string,
     assetAddress: string,
     userId: string,
   ) {
     return this.prisma.buyTransaction.create({
       data: {
+        value,
         snapshot: {
           connect: {
             id: snapshotId,
@@ -28,9 +31,15 @@ export class TradeService {
     });
   }
 
-  async createSellTransaction(snapshotId: string, tradeId: string) {
+  async createSellTransaction(
+    value: any, //TODO type Decimal
+    snapshotId: string,
+    tradeId: string,
+    transactionRuleId: string,
+  ) {
     return this.prisma.sellTransaction.create({
       data: {
+        value,
         snapshot: {
           connect: {
             id: snapshotId,
@@ -41,21 +50,34 @@ export class TradeService {
             id: tradeId,
           },
         },
+        transactionRule: {
+          connect: {
+            id: transactionRuleId,
+          },
+        },
       },
     });
   }
 
-  async findMany(args: FindManyArgs) {
+  async findMany(args: FindManyArgs & { userId?: string }) {
+    const { userId, ...findArgs } = args;
+
     const trades = await this.prisma.trade.findMany({
-      ...args,
+      ...findArgs,
+      where: userId
+        ? {
+            userId,
+          }
+        : {},
       include: {
         asset: true,
+        user: true,
         buyTransaction: {
           include: {
             snapshot: true,
           },
         },
-        sellTransaction: {
+        sellTransactions: {
           include: {
             snapshot: true,
           },
@@ -71,7 +93,21 @@ export class TradeService {
     return this.prisma.trade.findMany({
       where: {
         assetAddress,
-        sellTransaction: null,
+        status: TradeStatus.ONGOING,
+      },
+      include: {
+        buyTransaction: true,
+      },
+    });
+  }
+
+  async finishTrade(id: string) {
+    await this.prisma.trade.update({
+      where: {
+        id,
+      },
+      data: {
+        status: TradeStatus.FINISHED,
       },
     });
   }

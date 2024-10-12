@@ -7,8 +7,5 @@ export class CreateOneSnapshotArgs {
   price?: string;
 
   @Field(() => String, { nullable: true })
-  priceInUsd?: string;
-
-  @Field(() => String, { nullable: true })
-  priceSolInUsd?: string;
+  liquidity?: string;
 }

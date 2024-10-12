@@ -2,38 +2,53 @@ import { Resolver, Mutation, Query, Args } from '@nestjs/graphql';
 import { UserService } from '../user.service';
 import { UpdateOneUserArgs } from './args/UpdateOneUserArgs';
 import { UniqueArgs } from 'src/common/graphql/args/UniqueArgs';
-import { SuccessOutput } from 'src/common/graphql/output/SuccessOutput';
-import { CreateOneUserArgs } from './args/CreateOneUserArgs';
 import { User } from './outputs/User';
+import { FindManyArgs } from 'src/common/graphql/args/FindManyArgs';
+import { UserManyOutput } from './outputs/UserManyOutput';
+import { UpdateOneUserRoleArgs } from './args/UpdateOneUserRoleArgs';
+import { RoleGuard } from 'src/modules/auth/guard/RoleGuard';
+import { UseGuards } from '@nestjs/common';
+import { Roles } from 'src/modules/auth/utils/RolesDecorator';
+import { UserRole } from '@prisma/client';
+import { JwtGuard } from 'src/modules/auth/guard/JwtGuard';
 
 @Resolver()
 export class UserResolver {
   constructor(private userService: UserService) {}
 
+  @UseGuards(RoleGuard)
+  @Roles(UserRole.Admin, UserRole.SuperAdmin)
   @Mutation(() => User)
-  async createOneUser(@Args() args: CreateOneUserArgs): Promise<User> {
-    return this.userService.create(args);
+  async deleteOneUser(@Args() args: UniqueArgs): Promise<User> {
+    return this.userService.delete(args.id);
   }
 
-  @Mutation(() => SuccessOutput)
-  async deleteOneUser(@Args() args: UniqueArgs): Promise<SuccessOutput> {
-    await this.userService.delete(args.id);
-    return { success: true };
+  @UseGuards(JwtGuard)
+  @Mutation(() => User)
+  async updateOneUser(@Args() args: UpdateOneUserArgs): Promise<User> {
+    return this.userService.update(args);
   }
 
-  @Mutation(() => SuccessOutput)
-  async updateOneUser(@Args() args: UpdateOneUserArgs): Promise<SuccessOutput> {
-    await this.userService.update(args);
-    return { success: true };
+  @UseGuards(RoleGuard)
+  @Roles(UserRole.SuperAdmin)
+  @Mutation(() => User)
+  async updateOneUserRole(@Args() args: UpdateOneUserRoleArgs): Promise<User> {
+    return this.userService.update(args);
   }
 
-  @Query(() => [User])
-  async findManyUsers() {
-    return this.userService.findMany();
+  @UseGuards(RoleGuard)
+  @Roles(UserRole.Admin, UserRole.SuperAdmin)
+  @Query(() => UserManyOutput)
+  async findManyUsers(
+    @Args({ nullable: true }) args?: FindManyArgs,
+  ): Promise<UserManyOutput> {
+    return this.userService.findMany(args);
   }
 
+  @UseGuards(RoleGuard)
+  @Roles(UserRole.Admin, UserRole.SuperAdmin)
   @Query(() => User, { nullable: true })
   async findOneUserById(@Args() args: UniqueArgs): Promise<User> {
-    return this.userService.findById(args.id);
+    return this.userService.findOneById(args.id);
   }
 }

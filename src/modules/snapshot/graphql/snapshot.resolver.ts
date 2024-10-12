@@ -1,29 +1,18 @@
-import { Resolver, Mutation, Query, Args } from '@nestjs/graphql';
+import { Resolver, Query, Args } from '@nestjs/graphql';
 import { SnapshotService } from '../snapshot.service';
-import { Snapshot } from './outputs/Snapshot';
-import { CreateOneSnapshotWithAssetArgs } from './args/CreateOneSnapshotWithAssetArgs';
-import { SnapshotManyOutput } from './outputs/SnapshotManyOutput';
 import { FindManyArgs } from 'src/common/graphql/args/FindManyArgs';
 import { SnapshotChainManyOutput } from './outputs/SnapshotChainManyOutput';
+import { UseGuards } from '@nestjs/common';
+import { RoleGuard } from 'src/modules/auth/guard/RoleGuard';
+import { UserRole } from '@prisma/client';
+import { Roles } from 'src/modules/auth/utils/RolesDecorator';
 
 @Resolver()
 export class SnapshotResolver {
   constructor(private snapshotService: SnapshotService) {}
 
-  @Mutation(() => Snapshot)
-  async createOneSnapshot(
-    @Args() args: CreateOneSnapshotWithAssetArgs,
-  ): Promise<Snapshot> {
-    return this.snapshotService.createOneSnapshotWithAsset(args);
-  }
-
-  @Query(() => SnapshotManyOutput)
-  async findManySnapshots(
-    @Args() args?: FindManyArgs,
-  ): Promise<SnapshotManyOutput> {
-    return await this.snapshotService.findMany(args);
-  }
-
+  @UseGuards(RoleGuard)
+  @Roles(UserRole.Admin, UserRole.SuperAdmin)
   @Query(() => SnapshotChainManyOutput)
   async findManySnapshotChains(
     @Args() args?: FindManyArgs,

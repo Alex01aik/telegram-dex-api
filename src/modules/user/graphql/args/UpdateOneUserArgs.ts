@@ -7,6 +7,9 @@ export class UpdateOneUserArgs {
   @Field()
   id: string;
 
-  @Field()
+  @Field({ nullable: true })
   name?: string;
+
+  @Field({ nullable: true })
+  isAutoTrade?: boolean;
 }

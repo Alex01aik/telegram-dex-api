@@ -38,6 +38,9 @@ export class InformatorService {
       orderBy: {
         createdAt: 'desc',
       },
+      include: {
+        rate: true,
+      },
     });
     const total = await this.prisma.informator.count();
     return { informators, meta: { total } };
@@ -54,7 +57,15 @@ export class InformatorService {
     }
 
     return await this.prisma.informator.create({
-      data,
+      data: {
+        ...data,
+        rate: {
+          create: {
+            successes: 0,
+            fales: 0,
+          },
+        },
+      },
     });
   }
 

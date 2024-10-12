@@ -13,7 +13,11 @@ model Informator {
   telegramId    String          @unique
   isTrusted     Boolean         @default(false)
   // 
+  rate          InformatorRate?
+  // 
   SnapshotChain SnapshotChain[]
+  // 
+  chats         Chat[]
   // 
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -22,8 +26,7 @@ model Informator {
 model Snapshot {
   id              String            @id @default(uuid())
   price           Decimal?
-  priceInUsd      Decimal?
-  priceSolInUsd   Decimal?
+  liquidity       Decimal?
   payload         Json?
   // 
   snapshotChainId String
@@ -71,55 +74,126 @@ model Asset {
 }
 
 model Trade {
-  id              String           @id @default(uuid())
+  id               String            @id @default(uuid())
+  status           TradeStatus       @default(ONGOING)
   // 
-  assetAddress    String
-  asset           Asset            @relation(fields: [assetAddress], references: [address])
+  assetAddress     String
+  asset            Asset             @relation(fields: [assetAddress], references: [address])
   // 
-  buyTransaction  BuyTransaction?
+  buyTransaction   BuyTransaction?
   // 
-  sellTransaction SellTransaction?
+  sellTransactions SellTransaction[]
   // 
-  userId          String
-  user            User             @relation(fields: [userId], references: [id])
+  userId           String
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   // 
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+enum TradeStatus {
+  ONGOING
+  FINISHED
 }
 
 model BuyTransaction {
   id         String   @id @default(uuid())
+  value      Decimal
   // 
   snapshotId String
   snapshot   Snapshot @relation(fields: [snapshotId], references: [id])
   // 
   tradeId    String   @unique
-  trade      Trade    @relation(fields: [tradeId], references: [id])
+  trade      Trade    @relation(fields: [tradeId], references: [id], onDelete: Cascade)
   // 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
 
 model SellTransaction {
-  id         String   @id @default(uuid())
+  id                String          @id @default(uuid())
+  value             Decimal
+  transactionRuleId String
+  transactionRule   TransactionRule @relation(fields: [transactionRuleId], references: [id])
   // 
-  snapshotId String
-  snapshot   Snapshot @relation(fields: [snapshotId], references: [id])
+  snapshotId        String
+  snapshot          Snapshot        @relation(fields: [snapshotId], references: [id])
   // 
-  tradeId    String   @unique
-  trade      Trade    @relation(fields: [tradeId], references: [id])
+  tradeId           String
+  trade             Trade           @relation(fields: [tradeId], references: [id], onDelete: Cascade)
   // 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 }
 
 model User {
   id          String   @id @default(uuid())
   name        String
   isAutoTrade Boolean  @default(false)
+  login       String   @unique
+  hash        String
+  role        UserRole @default(User)
   //
   Trade       Trade[]
   // 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+enum UserRole {
+  User
+  Admin
+  SuperAdmin
+}
+
+model Chat {
+  id          String       @id @default(uuid())
+  name        String
+  telegramId  String       @unique
+  // 
+  rate        ChatRate?
+  //
+  informators Informator[]
+  // 
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model TransactionRule {
+  id                String              @id @default(uuid())
+  priceChange       Decimal
+  transactionVolume Decimal?
+  type              TransactionRuleType
+  // 
+  transactions      SellTransaction[]
+  // 
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+enum TransactionRuleType {
+  STOP
+  SELL
+}
+
+model InformatorRate {
+  id         String     @id
+  successes  Int        @default(autoincrement())
+  fales      Int        @default(autoincrement())
+  // 
+  informator Informator @relation(fields: [id], references: [id], onDelete: Cascade)
+  // 
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model ChatRate {
+  id        String   @id
+  successes Int      @default(autoincrement())
+  fales     Int      @default(autoincrement())
+  // 
+  chat      Chat     @relation(fields: [id], references: [id], onDelete: Cascade)
+  // 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

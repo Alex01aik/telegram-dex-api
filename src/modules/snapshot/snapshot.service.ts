@@ -123,4 +123,33 @@ export class SnapshotService {
       },
     });
   }
+
+  async findFirstSnapshotByChainId(id: string) {
+    return this.prisma.snapshot.findFirst({
+      where: {
+        snapshotChainId: id,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+  }
+
+  async findLastSellTransactionWithRuleByChainId(id: string) {
+    return this.prisma.sellTransaction.findFirst({
+      where: {
+        snapshot: {
+          snapshotChainId: id,
+        },
+      },
+      orderBy: {
+        snapshot: {
+          price: 'desc',
+        },
+      },
+      include: {
+        transactionRule: true,
+      },
+    });
+  }
 }
