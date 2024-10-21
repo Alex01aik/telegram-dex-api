@@ -74,7 +74,23 @@ export class AuthResolver {
     );
     const user = await this.userService.findOneById(userId);
     const tokens = await this.authService.generateTokens(user);
+    ctx.res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      sameSite: 'None',
+      secure: true,
+    });
     return { accessToken: tokens.accessToken };
+  }
+
+  @Query(() => SuccessOutput)
+  async logout(@Context() ctx: any): Promise<SuccessOutput> {
+    ctx.res.cookie('refreshToken', '', {
+      httpOnly: true,
+      sameSite: 'None',
+      secure: true,
+      expires: new Date(0),
+    });
+    return { success: true };
   }
 
   @UseGuards(JwtGuard)

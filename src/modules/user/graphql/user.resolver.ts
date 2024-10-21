@@ -1,11 +1,10 @@
-import { Resolver, Mutation, Query, Args } from '@nestjs/graphql';
+import { Resolver, Mutation, Query, Args, Context } from '@nestjs/graphql';
 import { UserService } from '../user.service';
-import { UpdateOneUserArgs } from './args/UpdateOneUserArgs';
+import { UpdateMyUserArgs, UpdateOneUserArgs } from './args/UpdateOneUserArgs';
 import { UniqueArgs } from 'src/common/graphql/args/UniqueArgs';
 import { User } from './outputs/User';
 import { FindManyArgs } from 'src/common/graphql/args/FindManyArgs';
 import { UserManyOutput } from './outputs/UserManyOutput';
-import { UpdateOneUserRoleArgs } from './args/UpdateOneUserRoleArgs';
 import { RoleGuard } from 'src/modules/auth/guard/RoleGuard';
 import { UseGuards } from '@nestjs/common';
 import { Roles } from 'src/modules/auth/utils/RolesDecorator';
@@ -25,14 +24,17 @@ export class UserResolver {
 
   @UseGuards(JwtGuard)
   @Mutation(() => User)
-  async updateOneUser(@Args() args: UpdateOneUserArgs): Promise<User> {
-    return this.userService.update(args);
+  async updateMyUser(
+    @Args() args: UpdateMyUserArgs,
+    @Context() ctx: any,
+  ): Promise<User> {
+    return this.userService.update({ ...args, id: ctx.req.user.id });
   }
 
   @UseGuards(RoleGuard)
   @Roles(UserRole.SuperAdmin)
   @Mutation(() => User)
-  async updateOneUserRole(@Args() args: UpdateOneUserRoleArgs): Promise<User> {
+  async updateOneUser(@Args() args: UpdateOneUserArgs): Promise<User> {
     return this.userService.update(args);
   }
 

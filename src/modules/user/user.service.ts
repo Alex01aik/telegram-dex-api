@@ -3,7 +3,6 @@ import { UpdateOneUserArgs } from './graphql/args/UpdateOneUserArgs';
 import { PrismaService } from 'prisma/prisma.service';
 import { User } from '@prisma/client';
 import { FindManyArgs } from 'src/common/graphql/args/FindManyArgs';
-import { UpdateOneUserRoleArgs } from './graphql/args/UpdateOneUserRoleArgs';
 
 @Injectable()
 export class UserService {
@@ -67,7 +66,7 @@ export class UserService {
     });
   }
 
-  async update(data: UpdateOneUserArgs | UpdateOneUserRoleArgs) {
+  async update(data: UpdateOneUserArgs) {
     return await this.prisma.user.update({
       where: {
         id: data.id,

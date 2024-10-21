@@ -42,6 +42,7 @@ export class TelegramService implements OnModuleInit {
 
   private async handleUpdate(event: any) {
     const chatIds = await this.chatService.findAllChatIds();
+    // TODO check message from chat to get chatID
     if (event instanceof Api.UpdateShortChatMessage) {
       if (chatIds.includes(String(event.chatId))) {
         try {
